@@ -1,14 +1,16 @@
 #include <iostream>
 #include <vector>
-#include <string>
+#include <string.h>
 #include <fstream>
 #include <limits>
 #include <sstream>
 #include <iomanip>
+#include <cctype>
 
 class Pokemon
 {
 public:
+	int num;
     int id;
     std::string name;
     std::string type1;
@@ -17,9 +19,9 @@ public:
     int attack;
     int defense;
 
-    Pokemon(int id, const std::string &name, const std::string &type1, const std::string &type2,
+    Pokemon(int num, int id, const std::string &name, const std::string &type1, const std::string &type2,
             int total, int hp, int attack, int defense)
-        : id(id), name(name), type1(type1), type2(type2), hp(hp), attack(attack), defense(defense) {}
+        : num(num), id(id), name(name), type1(type1), type2(type2), hp(hp), attack(attack), defense(defense) {}
 };
 
 class TreeNode
@@ -184,9 +186,11 @@ int main()
 {
     int command;
     std::vector<Pokemon*> pokemonList;
+    int num;
     int id, total, hp, attack, defense;
-    std::string name, type1, type2;
+    std::string name, type1, type2, namep;
     BinarySearchTree bst;
+    char c;
 
     while (true) {
         std::cout << "\n";
@@ -211,7 +215,7 @@ int main()
             // 從使用者輸入中讀取檔案編號
             std::cin >> fileName;
 
-            // 組合檔案名稱	 ex:"input401.txt"
+            // 組合檔案名稱	 ex:"input501.txt"
             fileName = "input" + fileName + ".txt";
 
             // 步驟1
@@ -230,21 +234,41 @@ int main()
             std::getline(inputFile, header);
 
             // 讀取資料並建立 Pokemon 物件
-            while (inputFile >> id >> name >> type1 >> type2 >> total >> hp >> attack >> defense)
+            while (true)
             {
                 // 這裡只讀取前七項資料，忽略剩餘的
-
-                Pokemon *newPokemon = new Pokemon(id, name, type1, type2, total, hp, attack, defense);
+                inputFile >> id >> name >> type1;
+				
+				if(type1 == "Mime") {
+					name = name + " " + type1;
+					inputFile >> type1;
+				}
+				inputFile >> type2;
+                
+                if (!isdigit(type2[0])) {
+                	inputFile >> total >> hp >> attack >> defense;
+				}
+				else {
+					inputFile >> hp >> attack >> defense;
+					total = 0;
+				}
+				num = pokemonList.size()+1;
+                Pokemon *newPokemon = new Pokemon(num, id, name, type1, type2, total, hp, attack, defense);
                 pokemonList.push_back(newPokemon);
 
                 // 忽略剩餘行尾
                 inputFile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                
+                if (!inputFile) {
+					break;
+				}
 
                 // 步驟1
                 std::cout << std::left << '[' << pokemonList.size() << std::setw(6) << ']' << std::setw(8) << id << std::setw(32) << name << std::setw(16) << type1 << std::setw(8)
                         << hp << std::setw(8) << attack << std::setw(8) << defense << std::endl;
-            }
 
+            }
+			
             inputFile.close();
 
             // 步驟2
@@ -264,13 +288,13 @@ int main()
             std::cout << std::left << std::setw(8) << '\0' << std::setw(8) << '#' << std::setw(32) << "Name"
                     << std::setw(16) << "Type 1" << std::setw(8) << "HP" << std::setw(8) << "Attack" << std::setw(8) << "Defense" << std::endl;
 
-            std::cout << std::left << '[' << leftmost->id << std::setw(6) << ']' << std::setw(8) << leftmost->id << std::setw(32) << leftmost->name << std::setw(16) << leftmost->type1 << std::setw(8)
+            std::cout << std::left << '[' << leftmost->num << std::setw(6) << ']' << std::setw(8) << leftmost->id << std::setw(32) << leftmost->name << std::setw(16) << leftmost->type1 << std::setw(8)
                     << leftmost->hp << std::setw(8) << leftmost->attack << std::setw(8) << leftmost->defense << std::endl;
 
             std::cout << "Rightmost node:" << std::endl;
             std::cout << std::left << std::setw(8) << '\0' << std::setw(8) << '#' << std::setw(32) << "Name"
                     << std::setw(16) << "Type 1" << std::setw(8) << "HP" << std::setw(8) << "Attack" << std::setw(8) << "Defense" << std::endl;
-            std::cout << '[' << rightmost->id << std::setw(6) << ']' << std::setw(8) << rightmost->id << std::setw(32) << rightmost->name << std::setw(16) << rightmost->type1 << std::setw(8)
+            std::cout << '[' << rightmost->num << std::setw(6) << ']' << std::setw(8) << rightmost->id << std::setw(32) << rightmost->name << std::setw(16) << rightmost->type1 << std::setw(8)
                     << rightmost->hp << std::setw(8) << rightmost->attack << std::setw(8) << rightmost->defense << std::endl;
         }
         if (command == 2) {
