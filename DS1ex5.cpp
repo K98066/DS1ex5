@@ -1,3 +1,5 @@
+//  DS1ex5  27  11020117林子皓  11020134呂宗凱 
+
 #include <iostream>
 #include <vector>
 #include <string.h>
@@ -6,6 +8,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cctype>
+#include <cmath>
 
 class Pokemon
 {
@@ -149,42 +152,59 @@ public:
     }
 };
 
-void heapify(std::vector<Pokemon*> &pokemonList, int index)
-{
-    int max_index = index;
-    int left_child = 2 * index + 1;
-    int right_child = 2 * index + 2;
-    int size = pokemonList.size();
+void heapify(std::vector<Pokemon*>& pokemons, int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
 
-    if (left_child < size && pokemonList[left_child]->hp > pokemonList[max_index]->hp)
-    {
-        max_index = left_child;
+    if (left < n && pokemons[left]->hp > pokemons[largest]->hp) {
+        largest = left;
     }
 
-    if (right_child < size && pokemonList[right_child]->hp > pokemonList[max_index]->hp)
-    {
-        max_index = right_child;
+    if (right < n && pokemons[right]->hp > pokemons[largest]->hp) {
+        largest = right;
     }
 
-    if (max_index != index)
-    {
-        std::swap(pokemonList[index], pokemonList[max_index]);
-        heapify(pokemonList, max_index);
+    if (largest != i) {
+        std::swap(pokemons[i], pokemons[largest]);
+        heapify(pokemons, n, largest);
     }
 }
 
-void heapRebuild(std::vector<Pokemon*> &pokemonList)
-{
-    // Convert the array into a max heap based on hp values
-    for (int i = pokemonList.size() / 2 - 1; i >= 0; --i)
-    {
-        heapify(pokemonList, i);
+void buildMaxHeapFromBottom(std::vector<Pokemon*>& pokemons) {
+    int n = pokemons.size();
+
+    // Start from the last non-leaf node and heapify all nodes in reverse order
+    for (int i = n / 2 - 1; i >= 0; --i) {
+        heapify(pokemons, n, i);
     }
 }
+
+void rebuildHeap(std::vector<Pokemon*>& pokemons) {
+    buildMaxHeapFromBottom(pokemons);
+}
+
+int calculateTreeHeight(int n) {
+    // Height of a heap with n nodes is ceil(log2(n + 1)) - 1
+    return static_cast<int>(std::ceil(std::log2(n + 1))) - 1;
+}
+
+void printLeftmostNode(const Pokemon* leftmost) {
+    std::cout << std::left << '[' << leftmost->num << std::setw(6) << ']' << std::setw(8) << leftmost->id << std::setw(32) << leftmost->name << std::setw(16) << leftmost->type1
+        << std::setw(8) << leftmost->hp << std::setw(8) << leftmost->attack << std::setw(8) << leftmost->defense << std::endl;
+}
+
+void printBottomNode(const Pokemon* bottomNode) {
+    std::cout << std::left << '[' << bottomNode->num << std::setw(6) << ']' << std::setw(8) << bottomNode->id << std::setw(32) << bottomNode->name << std::setw(16) << bottomNode->type1
+        << std::setw(8) << bottomNode->hp << std::setw(8) << bottomNode->attack << std::setw(8) << bottomNode->defense << std::endl;
+}
+
 
 int main()
 {
+	std::vector<Pokemon*> pokemon_arr; 
     int command;
+    int arr_num = 0;
     std::vector<Pokemon*> pokemonList;
     int num;
     int id, total, hp, attack, defense;
@@ -252,8 +272,14 @@ int main()
 					inputFile >> hp >> attack >> defense;
 					total = 0;
 				}
+				
+				 // 任務二的資料陣列 
+                Pokemon *add_pokemon = new Pokemon(num, id, name, type1, type2, total, hp, attack, defense);
+                pokemon_arr.push_back(add_pokemon);				
+				
 				num = pokemonList.size()+1;
                 Pokemon *newPokemon = new Pokemon(num, id, name, type1, type2, total, hp, attack, defense);
+                                
                 pokemonList.push_back(newPokemon);
 
                 // 忽略剩餘行尾
@@ -299,34 +325,36 @@ int main()
         }
         if (command == 2) {
             // Call heapRebuild to convert the Pokemon array to a heap based on hp values
-            heapRebuild(pokemonList);
+            rebuildHeap(pokemon_arr);
 
             // Display the resulting heap
             std::cout << std::left << std::setw(8) << '\0' << std::setw(8) << '#' << std::setw(32) << "Name"
                     << std::setw(16) << "Type 1" << std::setw(8) << "HP" << std::setw(8) << "Attack" << std::setw(8) << "Defense" << std::endl;
-            bst.printHeap();
+            
+            int a = 1;
+            for (const auto& pokemon : pokemon_arr) {
+        		std::cout << std::left << '[' << a << std::setw(6) << ']' << std::setw(8) << pokemon->id << std::setw(32) << pokemon->name << std::setw(16) << pokemon->type1
+                    << std::setw(8) << pokemon->hp << std::setw(8) << pokemon->attack << std::setw(8) << pokemon->defense << std::endl;
+                a++;
+    		}
 
             // 步驟3
-            int height = bst.getHeight();
-            Pokemon *leftmost = bst.getLeftmost();
-            Pokemon *rightmost = bst.getRightmost();
+            int treeHeight = calculateTreeHeight(pokemon_arr.size());
 
             // 輸出樹高、最左側和最右側節點對應的資料
 
-            std::cout << "HP tree height = " << height << std::endl;
+            std::cout << "HP tree height = " << treeHeight << std::endl;
 
             std::cout << "Leftmost node:" << std::endl;
             std::cout << std::left << std::setw(8) << '\0' << std::setw(8) << '#' << std::setw(32) << "Name"
                     << std::setw(16) << "Type 1" << std::setw(8) << "HP" << std::setw(8) << "Attack" << std::setw(8) << "Defense" << std::endl;
 
-            std::cout << std::left << '[' << leftmost->id << std::setw(6) << ']' << std::setw(8) << leftmost->id << std::setw(32) << leftmost->name << std::setw(16) << leftmost->type1 << std::setw(8)
-                    << leftmost->hp << std::setw(8) << leftmost->attack << std::setw(8) << leftmost->defense << std::endl;
+            printLeftmostNode(pokemon_arr.front());
 
             std::cout << "Buttom:" << std::endl;
             std::cout << std::left << std::setw(8) << '\0' << std::setw(8) << '#' << std::setw(32) << "Name"
                     << std::setw(16) << "Type 1" << std::setw(8) << "HP" << std::setw(8) << "Attack" << std::setw(8) << "Defense" << std::endl;
-            std::cout << '[' << rightmost->id << std::setw(6) << ']' << std::setw(8) << rightmost->id << std::setw(32) << rightmost->name << std::setw(16) << rightmost->type1 << std::setw(8)
-                    << rightmost->hp << std::setw(8) << rightmost->attack << std::setw(8) << rightmost->defense << std::endl;
+            printBottomNode(pokemon_arr.back());
         }
     }
 }
